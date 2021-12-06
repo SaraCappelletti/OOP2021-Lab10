@@ -6,7 +6,9 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.Toolkit;
+import java.util.Arrays;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -33,9 +35,32 @@ import javax.swing.JTextArea;
 public final class LambdaFilter extends JFrame {
 
     private static final long serialVersionUID = 1760990730218643730L;
+    
+    /*
+     * This is a "regular expression". It is a very powerful tool for inspecting
+     * and manipulating strings. Unfortunately, we have no room in this course
+     * to introduce them - but you can read something yourself (start from
+     * https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html),
+     * and test your abilities with https://regex101.com/
+     */
+    private static final String ANY_NON_WORD = "(\\s|\\p{Punct})+";
 
     private enum Command {
-        IDENTITY("No modifications", Function.identity());
+        IDENTITY("No modifications", Function.identity()),
+        TO_LOWER("Convert to lowercase", String::toLowerCase),
+        NUM_CHARS("Count the number of chars", s -> Integer.toString(s.length())),
+        NUM_LINES("Count the number of lines", s -> Long.toString(s.chars()
+                .filter(e -> e == '\n')
+                .count() + 1)),
+        ALPHABETICAL_ORDER("List all the words in alphabetical order", s -> Arrays.stream(s.split(ANY_NON_WORD))
+                .sorted()
+                .collect(Collectors.joining("\n"))),
+        WORD_COUNT("Write the count for each word", s -> Arrays.stream(s.split(ANY_NON_WORD))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> e.getKey() + " -> " + e.getValue())
+                .collect(Collectors.joining("\n"))
+        );
 
         private final String commandName;
         private final Function<String, String> fun;
